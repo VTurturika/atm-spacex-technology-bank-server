@@ -14,6 +14,6 @@ public class BankServer {
         get("/", (request, response) -> logoHTML);
     }
 
-    private static final String logoHTML = "<html><head><style>body {background: url(\"./spacex-technology.jpg\") " +
-                                            "no-repeat; background-size: cover;}</style></head><body></body></html>";
+    private static final String logoHTML = "<html><body><img src=\"./spacex-technology.jpg\" " +
+                                            "alt=\"spacex-technology\" style=\"width: 100%\"></body></html>";
 }
