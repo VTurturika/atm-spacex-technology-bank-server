@@ -1,3 +1,11 @@
+import com.heroku.sdk.jdbc.DatabaseUrl;
+import org.json.JSONObject;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import static spark.Spark.*;
 
 public class BankServer {
@@ -14,7 +22,38 @@ public class BankServer {
         get("/", (request, response) -> logoHTML);
 
         //customer requests
-        post("/customer/check-pin", (request, response) -> "");
+        post("/customer/check-pin", "application/json", (request, response) -> {
+
+            Connection connection = null;
+            JSONObject result = new JSONObject().put("Result", "SOMETHING_WRONG");
+
+            try{
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = null;
+
+                if(request.queryParams().contains("cardID") && request.queryParams().contains("pinCode") ) {
+
+                    resultSet = statement.executeQuery(
+                                String.format("SELECT cardID FROM creditCard WHERE " +
+                                              "cardID = \'%1$s\' AND pin = \'%2$s\'",
+                                              request.queryParams("cardID"), request.queryParams("pinCode")));
+                    if (resultSet.next()) {
+                        result.put("Result", "OK");
+                        return result;
+                    }
+                }
+                else return result;
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+
+            return result;
+        });
         post("/customer/receive-cash", (request, response) -> "");
         post("/customer/add-cash", (request, response) -> "");
         post("/customer/get-balance", (request, response) -> "");
