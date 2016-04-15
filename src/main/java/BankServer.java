@@ -22,10 +22,10 @@ public class BankServer {
         get("/", (request, response) -> logoHTML);
 
         //customer requests
-        post("/customer/check-pin", "application/json", (request, response) -> {
+        post("/customer/check-pin", (request, response) -> {
 
             Connection connection = null;
-            JSONObject result = new JSONObject().put("Result", "SOMETHING_WRONG");
+            String result = "SOMETHING_WRONG";
 
             try{
                 connection = DatabaseUrl.extract().getConnection();
@@ -39,7 +39,7 @@ public class BankServer {
                                               "cardID = \'%1$s\' AND pin = \'%2$s\'",
                                               request.queryParams("cardID"), request.queryParams("pinCode")));
                     if (resultSet.next()) {
-                        result.put("Result", "OK");
+                        result = "OK";
                         return result;
                     }
                 }
