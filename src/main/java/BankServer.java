@@ -25,7 +25,6 @@ public class BankServer {
         post("/customer/check-pin", (request, response) -> {
 
             Connection connection = null;
-            String result = "SOMETHING_WRONG";
 
             try{
                 connection = DatabaseUrl.extract().getConnection();
@@ -38,12 +37,9 @@ public class BankServer {
                                 String.format("SELECT cardID FROM creditCard WHERE " +
                                               "cardID = \'%1$s\' AND pin = \'%2$s\'",
                                               request.queryParams("cardID"), request.queryParams("pinCode")));
-                    if (resultSet.next()) {
-                        result = "OK";
-                        return result;
-                    }
+                    return resultSet.next() ? "OK" : "LOGIN_ERROR";
                 }
-                else return result;
+                else return "LOGIN_ERROR";
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -51,8 +47,7 @@ public class BankServer {
             finally {
                 if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
             }
-
-            return result;
+            return "FATAL_ERROR";
         });
         post("/customer/receive-cash", (request, response) -> "");
         post("/customer/add-cash", (request, response) -> "");
