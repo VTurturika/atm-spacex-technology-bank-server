@@ -12,12 +12,7 @@ public class BankServer {
 
     public static void main(String[] args) {
 
-        try{
-            port(Integer.valueOf(System.getenv("PORT")));
-        }catch (Exception e) {
-            port(80);
-        }
-
+        port(Integer.valueOf(System.getenv("PORT")));
         staticFileLocation("/public");
         get("/", (request, response) -> logoHTML);
 
@@ -41,9 +36,7 @@ public class BankServer {
                 }
                 else return "LOGIN_ERROR";
             }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
+            catch (Exception e) {e.printStackTrace();}
             finally {
                 if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
             }
@@ -51,7 +44,38 @@ public class BankServer {
         });
         post("/customer/receive-cash", (request, response) -> "");
         post("/customer/add-cash", (request, response) -> "");
-        post("/customer/get-balance", (request, response) -> "");
+        post("/customer/get-balance","application/json", (request, response) -> {
+
+            Connection connection = null;
+            JSONObject resultJson = new JSONObject().put("Result", "FATAL_ERROR");
+
+            try{
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = null;
+
+                if(request.queryParams().contains("cardID") && request.queryParams().contains("pinCode") ) {
+
+                    resultSet = statement.executeQuery(
+                            String.format("SELECT balance FROM creditCard WHERE " +
+                                            "cardID = \'%1$s\' AND pin = \'%2$s\'",
+                                    request.queryParams("cardID"), request.queryParams("pinCode")));
+                    if (resultSet.next()) {
+                        resultJson.put("Result", "OK").put("Balance", resultSet.getString("balance"));
+                        return  resultJson;
+                    }
+                    else {
+                        return resultJson.put("Result", "LOGIN_ERROR");
+                    }
+                }
+                else return resultJson.put("Result", "LOGIN_ERROR");
+            }
+            catch (Exception e) {e.printStackTrace();}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+            return resultJson;
+        });
         post("/customer/change-pin", (request, response) -> "");
 
         //service worker requests
