@@ -57,7 +57,7 @@ public class BankServer {
                 if(request.queryParams().contains("cardID") && request.queryParams().contains("pinCode") ) {
 
                     resultSet = statement.executeQuery(
-                            String.format("SELECT balance FROM creditCard WHERE " +
+                            String.format("SELECT balance::money::numeric::float8; FROM creditCard WHERE " +
                                             "cardID = \'%1$s\' AND pin = \'%2$s\'",
                                     request.queryParams("cardID"), request.queryParams("pinCode")));
                     if (resultSet.next()) {
