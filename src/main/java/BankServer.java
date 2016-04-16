@@ -243,7 +243,27 @@ public class BankServer {
             }
             return "FATAL_ERROR";
         });
-        post("/service/unblock-card", (request, response) -> "");
+        post("/service/unblock-card", (request, response) -> {
+
+            Connection connection = null;
+            try {
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+
+                if(request.queryParams().contains("cardID")) {
+
+                    int rowCount = statement.executeUpdate(String.format("UPDATE CreditCard SET isLocked = false " +
+                                                                         "WHERE cardId = \'%1$s\';",
+                                                                         request.queryParams("cardID")));
+                    return (rowCount == 1) ? "OK" : "LOGIN_ERROR";
+                }
+            }
+            catch (Exception e) {e.printStackTrace();}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+            return "FATAL_ERROR";
+        });
 
     }
 
