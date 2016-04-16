@@ -42,7 +42,7 @@ public class BankServer {
             }
             return "FATAL_ERROR";
         });
-        post("/customer/receive-cash", (request, response) -> {
+        post("/customer/receive-cash","application/json", (request, response) -> {
 
             Connection connection = null;
             JSONObject resultJson = new JSONObject().put("Result", "FATAL_ERROR");
@@ -101,7 +101,7 @@ public class BankServer {
             return resultJson;
 
         });
-        post("/customer/add-cash", (request, response) -> {
+        post("/customer/add-cash", "application/json", (request, response) -> {
 
             Connection connection = null;
             JSONObject resultJson = new JSONObject().put("Result", "FATAL_ERROR");
@@ -173,7 +173,32 @@ public class BankServer {
             }
             return resultJson;
         });
-        post("/customer/change-pin", (request, response) -> "");
+        post("/customer/change-pin", (request, response) -> {
+
+            Connection connection = null;
+
+            try {
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+
+                if(request.queryParams().contains("cardID") && request.queryParams().contains("oldPin") &&
+                   request.queryParams().contains("newPin") ) {
+
+                    statement.executeUpdate(String.format("UPDATE creditCard SET pin = \'%1$s\' " +
+                                                          "WHERE pin = \'%2$s\' AND cardID = \'%3$s\';",
+                                                          request.queryParams("newPin"),
+                                                          request.queryParams("oldPin"),
+                                                          request.queryParams("cardID")));
+                    return "OK";
+                }
+                else return "LOGIN_ERROR";
+            }
+            catch (Exception e) {e.printStackTrace();}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+            return "FATAL_ERROR";
+        });
 
         //service worker requests
         post("/service/test-connection", (request, response) -> "Ready");
