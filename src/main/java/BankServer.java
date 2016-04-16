@@ -21,7 +21,7 @@ public class BankServer {
 
             Connection connection = null;
 
-            try{
+            try {
                 connection = DatabaseUrl.extract().getConnection();
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = null;
@@ -42,7 +42,65 @@ public class BankServer {
             }
             return "FATAL_ERROR";
         });
-        post("/customer/receive-cash", (request, response) -> "");
+        post("/customer/receive-cash", (request, response) -> {
+
+            Connection connection = null;
+            JSONObject resultJson = new JSONObject().put("Result", "FATAL_ERROR");
+
+            try {
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = null;
+
+                if(request.queryParams().contains("cardID") && request.queryParams().contains("pinCode") &&
+                   request.queryParams().contains("cashSize")) {
+
+                    resultSet = statement.executeQuery(String.format("SELECT balance FROM creditCard WHERE " +
+                                                                      "cardID = \'%1$s\' AND pin = \'%2$s\'",
+                                                                      request.queryParams("cardID"),
+                                                                      request.queryParams("pinCode")));
+                    if (resultSet.next()) {
+
+                        double currentBalance = Double.parseDouble(resultSet.getString("balance")
+                                                                   .substring(1)
+                                                                   .replaceAll(",", ""));
+
+                        double requiredAmount = Double.parseDouble(request.queryParams("cashSize"));
+
+                        if(currentBalance >= requiredAmount) {
+                            statement.executeUpdate(String.format("UPDATE creditCard SET balance = balance - \'$%1$s\' " +
+                                                                  "WHERE cardID = \'%2$s\' AND pin = \'%3$s\'",
+                                                                   request.queryParams("cashSize"),
+                                                                   request.queryParams("cardID"),
+                                                                   request.queryParams("pinCode")));
+                            resultSet = statement.executeQuery(String.format("SELECT balance FROM creditCard WHERE " +
+                                                                             "cardID = \'%1$s\' AND pin = \'%2$s\'",
+                                                                              request.queryParams("cardID"),
+                                                                              request.queryParams("pinCode")));
+                            if (resultSet.next()) {
+                                resultJson.put("Result", "OK").put("Balance", resultSet.getString("balance"));
+                                return  resultJson;
+                            }
+                        }
+                        else {
+                            return resultJson.put("Result", "INSUFFICIENT_FUNDS");
+                        }
+
+                    }
+                    else {
+                        return resultJson.put("Result", "LOGIN_ERROR");
+                    }
+
+                }
+                else return resultJson.put("Result", "LOGIN_ERROR");
+            }
+            catch (Exception e) {e.printStackTrace();}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+            return resultJson;
+
+        });
         post("/customer/add-cash", (request, response) -> {
 
             Connection connection = null;
@@ -88,7 +146,7 @@ public class BankServer {
             Connection connection = null;
             JSONObject resultJson = new JSONObject().put("Result", "FATAL_ERROR");
 
-            try{
+            try {
                 connection = DatabaseUrl.extract().getConnection();
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = null;
@@ -125,7 +183,6 @@ public class BankServer {
         post("/service/get-blocked-cards", (request, response) -> "");
         post("/service/block-card", (request, response) -> "");
         post("/service/unblock-card", (request, response) -> "");
-
 
     }
 
