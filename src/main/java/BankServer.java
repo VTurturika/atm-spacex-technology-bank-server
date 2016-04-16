@@ -250,11 +250,14 @@ public class BankServer {
                 connection = DatabaseUrl.extract().getConnection();
                 Statement statement = connection.createStatement();
 
-                if(request.queryParams().contains("cardID")) {
+                if(request.queryParams().contains("cardID") && request.queryParams().contains("serviceKey")) {
 
                     int rowCount = statement.executeUpdate(String.format("UPDATE CreditCard SET isLocked = false " +
-                                                                         "WHERE cardId = \'%1$s\';",
-                                                                         request.queryParams("cardID")));
+                                                                         "WHERE cardId = \'%1$s\' AND EXISTS " +
+                                                                         "(SELECT serviceKey FROM ServiceWorker " +
+                                                                         "WHERE serviceKey = \'%2$s\');",
+                                                                         request.queryParams("cardID"),
+                                                                         request.queryParams("serviceKey")));
                     return (rowCount == 1) ? "OK" : "LOGIN_ERROR";
                 }
             }
