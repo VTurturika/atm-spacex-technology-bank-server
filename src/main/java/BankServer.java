@@ -208,7 +208,7 @@ public class BankServer {
                 if(request.queryParams().contains("serviceKey")) {
 
                     resultSet = statement.executeQuery(String.format("SELECT serviceKey FROM ServiceWorker " +
-                                                                     "WHERE serviceKey = '%1$s';",
+                                                                     "WHERE serviceKey = \'%1$s\';",
                                                                       request.params("serviceKey")));
                     return resultSet.next() ? "OK" : "LOGIN_ERROR";
                 }
