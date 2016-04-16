@@ -1,4 +1,5 @@
 import com.heroku.sdk.jdbc.DatabaseUrl;
+import com.sun.org.apache.regexp.internal.RE;
 import org.json.JSONObject;
 
 import java.sql.Connection;
@@ -34,7 +35,6 @@ public class BankServer {
                                                                      request.queryParams("pinCode")));
                     return resultSet.next() ? "OK" : "LOGIN_ERROR";
                 }
-                else return "LOGIN_ERROR";
             }
             catch (Exception e) {e.printStackTrace();}
             finally {
@@ -90,9 +90,7 @@ public class BankServer {
                     else {
                         return resultJson.put("Result", "LOGIN_ERROR");
                     }
-
                 }
-                else return resultJson.put("Result", "LOGIN_ERROR");
             }
             catch (Exception e) {e.printStackTrace();}
             finally {
@@ -132,7 +130,6 @@ public class BankServer {
                         return resultJson.put("Result", "LOGIN_ERROR");
                     }
                 }
-                else return resultJson.put("Result", "LOGIN_ERROR");
             }
             catch (Exception e) {e.printStackTrace();}
             finally {
@@ -165,7 +162,6 @@ public class BankServer {
                         return resultJson.put("Result", "LOGIN_ERROR");
                     }
                 }
-                else return resultJson.put("Result", "LOGIN_ERROR");
             }
             catch (Exception e) {e.printStackTrace();}
             finally {
@@ -191,7 +187,6 @@ public class BankServer {
                                                           request.queryParams("cardID")));
                     return "OK";
                 }
-                else return "LOGIN_ERROR";
             }
             catch (Exception e) {e.printStackTrace();}
             finally {
@@ -202,7 +197,29 @@ public class BankServer {
 
         //service worker requests
         post("/service/test-connection", (request, response) -> "Ready");
-        post("/service/check-service-key", (request, response) -> "");
+        post("/service/check-service-key", (request, response) -> {
+
+            Connection connection = null;
+            try {
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = null;
+
+                if(request.queryParams().contains("serviceKey")) {
+
+                    resultSet = statement.executeQuery(String.format("SELECT serviceKey FROM ServiceWorker " +
+                                                                     "WHERE serviceKey = '%1$s';",
+                                                                      request.params("serviceKey")));
+                    return resultSet.next() ? "OK" : "LOGIN_ERROR";
+                }
+            }
+            catch (Exception e) {e.printStackTrace();}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+            return "FATAL_ERROR";
+
+        });
         post("/service/create-account", (request, response) -> "");
         post("/service/add-card", (request, response) -> "");
         post("/service/get-blocked-cards", (request, response) -> "");
