@@ -172,7 +172,6 @@ public class BankServer {
         post("/customer/change-pin", (request, response) -> {
 
             Connection connection = null;
-
             try {
                 connection = DatabaseUrl.extract().getConnection();
                 Statement statement = connection.createStatement();
@@ -223,7 +222,27 @@ public class BankServer {
         post("/service/create-account", (request, response) -> "");
         post("/service/add-card", (request, response) -> "");
         post("/service/get-blocked-cards", (request, response) -> "");
-        post("/service/block-card", (request, response) -> "");
+        post("/service/block-card", (request, response) -> {
+
+            Connection connection = null;
+            try {
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+
+                if(request.queryParams().contains("cardID")) {
+
+                    int rowCount = statement.executeUpdate(String.format("UPDATE CreditCard SET isLocked = true " +
+                                                                         "WHERE cardId = \'%1$s\';",
+                                                                         request.queryParams("cardID")));
+                    return (rowCount == 1) ? "OK" : "LOGIN_ERROR";
+                }
+            }
+            catch (Exception e) {e.printStackTrace();}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+            return "FATAL_ERROR";
+        });
         post("/service/unblock-card", (request, response) -> "");
 
     }
