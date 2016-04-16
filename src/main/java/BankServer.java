@@ -180,12 +180,12 @@ public class BankServer {
                 if(request.queryParams().contains("cardID") && request.queryParams().contains("oldPin") &&
                    request.queryParams().contains("newPin") ) {
 
-                    statement.executeUpdate(String.format("UPDATE creditCard SET pin = \'%1$s\' " +
-                                                          "WHERE pin = \'%2$s\' AND cardID = \'%3$s\';",
-                                                          request.queryParams("newPin"),
-                                                          request.queryParams("oldPin"),
-                                                          request.queryParams("cardID")));
-                    return "OK";
+                    int rowCount = statement.executeUpdate(String.format("UPDATE creditCard SET pin = \'%1$s\' " +
+                                                                         "WHERE pin = \'%2$s\' AND cardID = \'%3$s\';",
+                                                                         request.queryParams("newPin"),
+                                                                         request.queryParams("oldPin"),
+                                                                         request.queryParams("cardID")));
+                    return (rowCount == 1) ? "OK" : "LOGIN_ERROR";
                 }
             }
             catch (Exception e) {e.printStackTrace();}
