@@ -209,7 +209,7 @@ public class BankServer {
 
                     resultSet = statement.executeQuery(String.format("SELECT serviceKey FROM ServiceWorker " +
                                                                      "WHERE serviceKey = \'%1$s\';",
-                                                                      request.params("serviceKey")));
+                                                                      request.queryParams("serviceKey")));
                     return resultSet.next() ? "OK" : "LOGIN_ERROR";
                 }
             }
