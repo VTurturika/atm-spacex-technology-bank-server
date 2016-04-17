@@ -291,7 +291,7 @@ public class BankServer {
                     }
                 }
             }
-            catch (Exception e) {e.printStackTrace();}
+            catch (Exception e) {e.printStackTrace(); resultJson.put("Debug", e.getMessage());}
             finally {
                 if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
             }
