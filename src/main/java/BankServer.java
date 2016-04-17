@@ -229,20 +229,18 @@ public class BankServer {
                 ResultSet resultSet = null;
 
                 if( request.queryParams().contains("serviceKey") &&
-                    request.queryParams().contains("customerFistName") &&
+                    request.queryParams().contains("customerFirstName") &&
                     request.queryParams().contains("customerMiddleName") &&
                     request.queryParams().contains("customerLastName") &&
                     request.queryParams().contains("customerAddress") &&
                     request.queryParams().contains("customerAge") )
                 {
-                    resultJson.put("Debug", "inside if");
-
                     resultSet = statement.executeQuery(
                             String.format("INSERT INTO BankAccount(customerFirstName, customerMiddleName," +
                                           "customerLastName,customerAge,customerAddress) " +
                                           "VALUES (\'%1$s\',\'%2$s\',\'%3$s\',%4$s,\'%5$s\');" +
                                           "SELECT currval('bankaccount_accountid_seq');",
-                                           request.queryParams("customerFistName"),
+                                           request.queryParams("customerFirstName"),
                                            request.queryParams("customerMiddleName"),
                                            request.queryParams("customerLastName"),
                                            request.queryParams("customerAge"),
@@ -257,13 +255,10 @@ public class BankServer {
                     }
                 }
             }
-            catch (Exception e) {e.printStackTrace(); resultJson.put("Debug", e.getMessage());}
+            catch (Exception e) {e.printStackTrace();}
             finally {
                 if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
             }
-
-            if( !resultJson.has("Debug") ) resultJson.put("Debug", "Outside if");
-
             return resultJson;
         });
         post("/service/add-card", (request, response) -> "");
