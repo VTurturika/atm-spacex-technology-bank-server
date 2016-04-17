@@ -219,7 +219,49 @@ public class BankServer {
             return "FATAL_ERROR";
 
         });
-        post("/service/create-account", (request, response) -> "");
+        post("/service/create-account","application/json", (request, response) -> {
+
+            Connection connection = null;
+            JSONObject resultJson = new JSONObject().put("Result", "FATAL_ERROR");
+            try {
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = null;
+
+                if( request.queryParams().contains("serviceKey") &&
+                    request.queryParams().contains("customerFistName") &&
+                    request.queryParams().contains("customerMiddleName") &&
+                    request.queryParams().contains("customerLastName") &&
+                    request.queryParams().contains("customerAddress") &&
+                    request.queryParams().contains("customerAge") )
+                {
+                    resultSet = statement.executeQuery(
+                            String.format("INSERT INTO BankAccount(customerFirstName, customerMiddleName," +
+                                          "customerLastName,customerAge,customerAddress) " +
+                                          "VALUES (\'%1$s\',\'%2$s\',\'%3$s\',%4$s,\'%5$s\');" +
+                                          "SELECT currval('bankaccount_accountid_seq');",
+                                           request.queryParams("customerFistName"),
+                                           request.queryParams("customerMiddleName"),
+                                           request.queryParams("customerLastName"),
+                                           request.queryParams("customerAge"),
+                                           request.queryParams("customerAddress")));
+
+                    if(resultSet.next()) {
+                        return resultJson.put("Result", "OK")
+                                         .put("AccountID", resultSet.getString("currval"));
+                    }
+                    else {
+                        return resultJson.put("Result", "LOGIN_ERROR");
+                    }
+                }
+            }
+            catch (Exception e) {e.printStackTrace();}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+
+            return resultJson;
+        });
         post("/service/add-card", (request, response) -> "");
         post("/service/get-blocked-cards", (request, response) -> "");
         post("/service/block-card", (request, response) -> {
