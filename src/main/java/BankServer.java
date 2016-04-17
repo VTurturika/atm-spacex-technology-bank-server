@@ -318,7 +318,6 @@ public class BankServer {
                         resultJson.put("Result", "OK");
                         JSONArray blockedCards = new JSONArray();
 
-                        resultSet.previous();
                         while(resultSet.next()) {
                             blockedCards.put(new JSONObject().put("CardID", resultSet.getString("cardID")));
                         }
