@@ -235,6 +235,8 @@ public class BankServer {
                     request.queryParams().contains("customerAddress") &&
                     request.queryParams().contains("customerAge") )
                 {
+                    resultJson.put("Debug", "inside if");
+
                     resultSet = statement.executeQuery(
                             String.format("INSERT INTO BankAccount(customerFirstName, customerMiddleName," +
                                           "customerLastName,customerAge,customerAddress) " +
@@ -255,10 +257,12 @@ public class BankServer {
                     }
                 }
             }
-            catch (Exception e) {e.printStackTrace(); resultJson.put("Error", e.getMessage());}
+            catch (Exception e) {e.printStackTrace(); resultJson.put("Debug", e.getMessage());}
             finally {
                 if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
             }
+
+            if( !resultJson.has("Debug") ) resultJson.put("Debug", "Outside if");
 
             return resultJson;
         });
