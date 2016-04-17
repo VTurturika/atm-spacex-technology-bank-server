@@ -1,6 +1,7 @@
 import com.heroku.sdk.jdbc.DatabaseUrl;
 import com.sun.org.apache.regexp.internal.RE;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.Connection;
@@ -297,7 +298,45 @@ public class BankServer {
             }
             return resultJson;
         });
-        post("/service/get-blocked-cards", (request, response) -> "");
+        post("/service/get-blocked-cards", (request, response) -> {
+
+            Connection connection = null;
+            JSONObject resultJson = new JSONObject().put("Result", "FATAL_ERROR");
+            try {
+                connection = DatabaseUrl.extract().getConnection();
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = null;
+
+                if(request.queryParams().contains("serviceKey") ) {
+
+                    resultSet = statement.executeQuery(String.format("SELECT cardID FROM creditCard " +
+                                                                     "WHERE isLocked = true AND EXISTS" +
+                                                                     "(SELECT serviceKey FROM ServiceWorker " +
+                                                                      "WHERE serviceKey = \'%1$s\');",
+                                                                      request.queryParams("serviceKey")));
+                    if(resultSet.next()) {
+                        resultJson.put("Result", "OK");
+                        JSONArray blockedCards = new JSONArray();
+
+                        resultSet.previous();
+                        while(resultSet.next()) {
+                            blockedCards.put(new JSONObject().put("CardID", resultSet.getString("cardID")));
+                        }
+
+                        resultJson.put("BlockedCards", blockedCards);
+                    }
+                    else {
+                        return resultJson.put("Result", "LOGIN_ERROR");
+                    }
+                }
+            }
+            catch (Exception e) {e.printStackTrace(); resultJson.put("Debug", e.getMessage());}
+            finally {
+                if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
+            }
+            return resultJson;
+
+        });
         post("/service/block-card", (request, response) -> {
 
             Connection connection = null;
