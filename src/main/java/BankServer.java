@@ -280,7 +280,7 @@ public class BankServer {
 
                         String cardID =  RandomStringUtils.random(16,false,true);
                         int rowCount = statement.executeUpdate(String.format("INSERT INTO creditCard(cardID, accountID) " +
-                                                                             "VALUES(\'$1%s\', $2%s);", cardID,
+                                                                             "VALUES(\'%1$s\', %2$s);", cardID,
                                                                               request.queryParams("accountID")));
                         if(rowCount == 1) {
                             return resultJson.put("Result", "OK").put("CardID", cardID);
