@@ -248,20 +248,18 @@ public class BankServer {
                         ResultSet resultSet = statement.executeQuery("SELECT last_value FROM bankaccount_accountid_seq;");
                         if(resultSet.next()) {
                             return resultJson.put("Result", "OK")
-                                             .put("Balance", resultSet.getInt("last_value"));
+                                             .put("AccountID", resultSet.getInt("last_value"));
                         }
-                        resultJson.put("Debug", "resultSet.next() == false");
                     }
                     else {
-                        return resultJson.put("Result", "LOGIN_ERROR").put("Debug", "rowsCounter != 1");
+                        return resultJson.put("Result", "LOGIN_ERROR");
                     }
                 }
             }
-            catch (Exception e) {e.printStackTrace();resultJson.put("Debug", e.getMessage());}
+            catch (Exception e) {e.printStackTrace();}
             finally {
                 if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
             }
-
             return resultJson;
         });
         post("/service/add-card", (request, response) -> "");
