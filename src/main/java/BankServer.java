@@ -226,7 +226,6 @@ public class BankServer {
             try {
                 connection = DatabaseUrl.extract().getConnection();
                 Statement statement = connection.createStatement();
-                ResultSet resultSet = null;
 
                 if( request.queryParams().contains("serviceKey") &&
                     request.queryParams().contains("customerFirstName") &&
@@ -235,30 +234,34 @@ public class BankServer {
                     request.queryParams().contains("customerAddress") &&
                     request.queryParams().contains("customerAge") )
                 {
-                    resultSet = statement.executeQuery(
+                    int rowsCounter = statement.executeUpdate(
                             String.format("INSERT INTO BankAccount(customerFirstName, customerMiddleName," +
                                           "customerLastName,customerAge,customerAddress) " +
-                                          "VALUES (\'%1$s\',\'%2$s\',\'%3$s\',%4$s,\'%5$s\');" +
-                                          "SELECT currval('bankaccount_accountid_seq');",
+                                          "VALUES (\'%1$s\',\'%2$s\',\'%3$s\',%4$s,\'%5$s\');",
                                            request.queryParams("customerFirstName"),
                                            request.queryParams("customerMiddleName"),
                                            request.queryParams("customerLastName"),
                                            request.queryParams("customerAge"),
                                            request.queryParams("customerAddress")));
 
-                    if(resultSet.next()) {
-                        return resultJson.put("Result", "OK")
-                                         .put("AccountID", resultSet.getString("currval"));
+                    if(rowsCounter == 1) {
+                        ResultSet resultSet = statement.executeQuery("SELECT last_value FROM bankaccount_accountid_seq;");
+                        if(resultSet.next()) {
+                            return resultJson.put("Result", "OK")
+                                             .put("Balance", resultSet.getInt("last_value"));
+                        }
+                        resultJson.put("Debug", "resultSet.next() == false");
                     }
                     else {
-                        return resultJson.put("Result", "LOGIN_ERROR");
+                        return resultJson.put("Result", "LOGIN_ERROR").put("Debug", "rowsCounter != 1");
                     }
                 }
             }
-            catch (Exception e) {e.printStackTrace();}
+            catch (Exception e) {e.printStackTrace();resultJson.put("Debug", e.getMessage());}
             finally {
                 if (connection != null) try {connection.close();} catch (SQLException e) {e.printStackTrace();}
             }
+
             return resultJson;
         });
         post("/service/add-card", (request, response) -> "");
